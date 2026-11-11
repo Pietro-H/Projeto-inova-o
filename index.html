@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SalvaComida - Redistribuição de Alimentos</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f0f2f5;
+            color: #333;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            color: #1b4332;
+            font-size: 28px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .dashboard {
+            display: flex;
+            gap: 15px;
+            max-width: 1100px;
+            margin: 0 auto 20px auto;
+        }
+
+        .dash-card {
+            flex: 1;
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-top: 4px solid #2d6a4f;
+        }
+
+        .dash-card.doacao { border-top-color: #d97706; }
+        .dash-card.venda { border-top-color: #2563eb; }
+        .dash-card.reservado { border-top-color: #059669; }
+
+        .dash-card h3 {
+            font-size: 22px;
+            margin-top: 5px;
+        }
+
+        .dash-card span {
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .main-container {
+            display: flex;
+            gap: 20px;
+            max-width: 1100px;
+            margin: 0 auto;
+            align-items: flex-start;
+        }
+
+        .box {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .form-box { flex: 1; }
+        .table-box { flex: 2; }
+
+        h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #2d6a4f;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 4px;
+            color: #4b5563;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 9px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #2d6a4f;
+        }
+
+        .btn-submit {
+            width: 100%;
+            background-color: #2d6a4f;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .btn-submit:hover {
+            background-color: #1b4332;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .search-bar input {
+            flex: 1;
+        }
+
+        .search-bar button {
+            background-color: #4b5563;
+            color: white;
+            border: none;
+            padding: 0 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+            vertical-align: middle;
+        }
+
+        th {
+            background-color: #f9fafb;
+            color: #374151;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .badge-doacao { background-color: #fef3c7; color: #92400e; }
+        .badge-venda { background-color: #dbeafe; color: #1e40af; }
+        .badge-reservado { background-color: #d1fae5; color: #065f46; }
+
+        .btn-action {
+            border: none;
+            padding: 5px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-right: 4px;
+        }
+
+        .btn-reserve { background-color: #10b981; color: white; }
+        .btn-reserve:hover { background-color: #059669; }
+        .btn-delete { background-color: #ef4444; color: white; }
+        .btn-delete:hover { background-color: #dc2626; }
+
+        .empty-msg {
+            text-align: center;
+            color: #9ca3af;
+            padding: 20px;
+        }
+
+        .actions-cell {
+            white-space: nowrap;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard, .main-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>🌱 SalvaComida - Combate ao Desperdício</h1>
+        <p>Plataforma de redistribuição automatizada de refeições excedentes</p>
+    </div>
+
+    <div class="dashboard">
+        <div class="dash-card">
+            <span>Total Cadastrado</span>
+            <h3 th:text="${totalItens}">0</h3>
+        </div>
+        <div class="dash-card doacao">
+            <span>Para Doação (≥ 5kg)</span>
+            <h3 th:text="${totalDoacoes}">0</h3>
+        </div>
+        <div class="dash-card venda">
+            <span>Venda c/ Desconto (&lt; 5kg)</span>
+            <h3 th:text="${totalVendas}">0</h3>
+        </div>
+        <div class="dash-card reservado">
+            <span>Reservados / Entregues</span>
+            <h3 th:text="${totalReservados}">0</h3>
+        </div>
+    </div>
+
+    <div class="main-container">
+        
+        <div class="box form-box">
+            <h2>Cadastrar Sobra</h2>
+            <form th:action="@{/cadastrar}" th:object="${novoAlimento}" method="post">
+                <div class="form-group">
+                    <label for="restaurante">Estabelecimento</label>
+                    <input type="text" id="restaurante" th:field="*{restaurante}" placeholder="Ex: Restaurante Central" required>
+                </div>
+                <div class="form-group">
+                    <label for="nomeItem">Item / Refeição</label>
+                    <input type="text" id="nomeItem" th:field="*{nomeItem}" placeholder="Ex: Lasanha de Frango" required>
+                </div>
+                <div class="form-group">
+                    <label for="categoria">Categoria</label>
+                    <select id="categoria" th:field="*{categoria}" required>
+                        <option value="Refeição Pronta">Refeição Pronta</option>
+                        <option value="Padaria / Pães">Padaria / Pães</option>
+                        <option value="Hortifrúti">Hortifrúti</option>
+                        <option value="Laticínios / Sobremesas">Laticínios / Sobremesas</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="quantidadeKg">Quantidade (Kg)</label>
+                    <input type="number" id="quantidadeKg" th:field="*{quantidadeKg}" step="0.01" min="0.1" placeholder="Ex: 5.5" required>
+                </div>
+                <div class="form-group">
+                    <label for="precoOriginal">Preço Original (R$)</label>
+                    <input type="number" id="precoOriginal" th:field="*{precoOriginal}" step="0.01" min="0" placeholder="Ex: 30.00" required>
+                </div>
+                <button type="submit" class="btn-submit">Cadastrar Alimento</button>
+            </form>
+        </div>
+
+        <div class="box table-box">
+            <h2>Itens Cadastrados</h2>
+            
+            <form th:action="@{/}" method="get" class="search-bar">
+                <input type="text" name="busca" th:value="${busca}" placeholder="Buscar por item, estabelecimento ou categoria...">
+                <button type="submit">Buscar</button>
+            </form>
+
+            <p class="empty-msg" th:if="${#lists.isEmpty(alimentos)}">
+                Nenhum alimento cadastrado ou encontrado com esses termos.
+            </p>
+
+            <table th:unless="${#lists.isEmpty(alimentos)}">
+                <thead>
+                    <tr>
+                        <th>Item / Categoria</th>
+                        <th>Estabelecimento</th>
+                        <th>Qtd</th>
+                        <th>Preço Final</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="a : ${alimentos}">
+                        <td>
+                            <b th:text="${a.nomeItem}"></b><br>
+                            <small style="color: #6b7280;" th:text="${a.categoria}"></small>
+                        </td>
+                        <td th:text="${a.restaurante}"></td>
+                        <td th:text="${a.quantidadeKg} + ' kg'"></td>
+                        <td>
+                            <s th:text="'R$ ' + ${#numbers.formatDecimal(a.precoOriginal, 1, 2)}" style="color: #9ca3af; font-size: 11px;"></s><br>
+                            <b th:text="'R$ ' + ${#numbers.formatDecimal(a.precoComDesconto, 1, 2)}"></b>
+                        </td>
+                        <td>
+                            <span th:if="${a.reservado}" class="badge badge-reservado">✅ Reservado</span>
+                            <span th:unless="${a.reservado}">
+                                <span th:if="${a.destinadoParaDoacao}" class="badge badge-doacao">🎁 Doação ONG</span>
+                                <span th:unless="${a.destinadoParaDoacao}" class="badge badge-venda">🏷️ Venda (-60%)</span>
+                            </span>
+                        </td>
+                        <td class="actions-cell">
+                            <form th:action="@{/reservar}" method="post" style="display:inline;">
+                                <input type="hidden" name="id" th:value="${a.id}">
+                                <button type="submit" class="btn-action btn-reserve" th:text="${a.reservado ? 'Desmarcar' : 'Reservar'}"></button>
+                            </form>
+                            <form th:action="@{/excluir}" method="post" style="display:inline;">
+                                <input type="hidden" name="id" th:value="${a.id}">
+                                <button type="submit" class="btn-action btn-delete" onclick="return confirm('Deseja excluir este item?')">Excluir</button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+</body>
+</html>
